@@ -1,0 +1,103 @@
+server:
+  port: 8080
+  tomcat:
+    threads:
+      max: 400
+      min-spare: 50
+    accept-count: 2000
+    max-connections: 10000
+
+spring:
+  application:
+    name: rest-arch-demo
+  threads:
+    virtual:
+      enabled: true          # Java 21 virtual threads for the web tier - lets blocking JDBC/HTTP
+                              # calls not exhaust platform threads under high concurrency
+  cloud:
+    openfeign:
+      client:
+        config:
+          risk-service:
+            connect-timeout: 500
+            read-timeout: 1000
+  data:
+    web:
+      pageable:
+        default-page-size: 20
+        max-page-size: 100   # caps ?size= on paginated endpoints
+  datasource:
+    # File-backed (not mem:) so an external tool - IntelliJ's Database view, say - can
+    # read the same data while the app runs. AUTO_SERVER lets the second process attach
+    # to the first one's H2 instance instead of failing on the file lock.
+    # Absolute, NOT ./data - a relative path resolves against each process's working
+    # directory, and the IDE, mvn and an external SQL client rarely agree on that, so
+    # each would silently create its own empty database.
+    url: jdbc:h2:file:${user.home}/springrest-h2/orders;AUTO_SERVER=TRUE;MODE=MySQL
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+    hikari:
+      maximum-pool-size: 50
+      minimum-idle: 10
+  jpa:
+    hibernate:
+      ddl-auto: update   # creates orders, orders_AUD, REVINFO (Envers) and idempotency_record
+    open-in-view: false
+    properties:
+      hibernate:
+        jdbc:
+          batch_size: 100
+        order_inserts: true
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+app:
+  security:
+    jwt-secret: "change-me-super-secret-key-for-demo-only-32bytes"
+    jwt-expiry-ms: 3600000
+  rate-limit:
+    capacity: 200               # burst size per client
+    refill-tokens: 200          # tokens refilled per period -> ~200 req/s sustained per client
+    refill-duration-seconds: 1
+  async:
+    queue-capacity: 50000
+    worker-threads: 16
+    batch-size: 200
+    flush-interval-ms: 50
+
+serviceb:
+  base-url: http://localhost:8081
+  process-path: /api/v1/process
+  outbound-service-key: "shared-secret-change-me"   # sent to Service B
+  inbound-service-key: "shared-secret-change-me"    # expected on Service B's callback
+  timeout-ms: 800
+
+riskservice:
+  base-url: http://localhost:8082
+  outbound-service-key: "shared-secret-change-me"   # sent to the risk service
+  inbound-service-key: "shared-secret-change-me"    # expected on the risk service's result callback
+
+logging:
+  pattern:
+    console: "%d{HH:mm:ss.SSS} %-5level [%X{correlationId:-},%thread] %logger{36} - %msg%n"
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html      # browse the API at http://localhost:8080/swagger-ui.html
+    operations-sorter: method
+    tags-sorter: alpha
+    display-request-duration: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.example</groupId>
+    <artifactId>spring-rest-services</artifactId>
+    <version>1.0.0</version>
+    <packaging>pom</packaging>
+
+    <name>spring-rest-services</name>
+    <description>
+        Aggregator only - it exists so an IDE (or a single mvn command) picks up both
+        services at once. It is deliberately NOT the parent of either module: both keep
+        spring-boot-starter-parent as their parent and remain independently buildable and
+        runnable, e.g. mvn -f service-b/pom.xml spring-boot:run
+    </description>
+
+    <modules>
+        <module>rest-arch-demo</module>
+        <module>service-b</module>
+        <module>risk-service</module>
+    </modules>
+</project>

@@ -1,0 +1,10 @@
+target/
+data/
+*.mv.db
+*.trace.db
+.idea/dataSources/
+.idea/dataSources.local.xml
+.idea/workspace.xml
+.idea/sqldialects.xml
+*.iml
+*.log

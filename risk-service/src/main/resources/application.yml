@@ -1,0 +1,77 @@
+server:
+  port: 8082
+  tomcat:
+    threads:
+      max: 400
+      min-spare: 50
+    accept-count: 2000
+
+spring:
+  application:
+    name: risk-service
+  threads:
+    virtual:
+      enabled: true
+  cloud:
+    openfeign:
+      client:
+        config:
+          order-service:
+            connect-timeout: 500
+            read-timeout: 1500
+
+risk:
+  inbound-service-key: "shared-secret-change-me"   # expected from the order service on /api/v1/risk/**
+  notional-limit: 1000000                          # quantity * price above this is REJECTED
+  min-latency-ms: 50                               # simulated evaluation time
+  max-latency-ms: 200
+
+orderservice:
+  base-url: http://localhost:8080
+  outbound-service-key: "shared-secret-change-me"  # sent to the order service on the result callback
+
+logging:
+  pattern:
+    console: "%d{HH:mm:ss.SSS} %-5level [%X{correlationId:-},%thread] %logger{36} - %msg%n"
+
+resilience4j:
+  # Layering is Retry( CircuitBreaker( call ) ): every attempt is recorded by the breaker, and once it
+  # opens the retries stop immediately (CallNotPermittedException is ignored by the retry).
+  retry:
+    instances:
+      orderCallback:
+        max-attempts: 4
+        wait-duration: 200ms
+        enable-exponential-backoff: true
+        exponential-backoff-multiplier: 2      # 200ms, 400ms, 800ms between attempts
+        # Only transient failures are worth retrying: connect/read problems and 5xx.
+        # 4xx (bad key, validation, unknown order) will fail identically every time.
+        retry-exceptions:
+          - feign.RetryableException
+          - feign.FeignException$FeignServerException
+        ignore-exceptions:
+          - io.github.resilience4j.circuitbreaker.CallNotPermittedException
+  circuitbreaker:
+    instances:
+      orderCallback:
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+        permitted-number-of-calls-in-half-open-state: 3
+        automatic-transition-from-open-to-half-open-enabled: true
+        record-exceptions:
+          - feign.RetryableException
+          - feign.FeignException$FeignServerException
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics,circuitbreakers,retries
+  endpoint:
+    health:
+      show-details: always
+  health:
+    circuitbreakers:
+      enabled: true

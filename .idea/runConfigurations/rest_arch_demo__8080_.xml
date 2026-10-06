@@ -1,0 +1,9 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="rest-arch-demo (8080)" type="Application" factoryName="Application">
+    <option name="MAIN_CLASS_NAME" value="com.example.restarch.RestArchDemoApplication" />
+    <module name="rest-arch-demo" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

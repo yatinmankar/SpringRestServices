@@ -1,0 +1,41 @@
+server:
+  port: 8081
+  tomcat:
+    threads:
+      max: 400
+      min-spare: 50
+    accept-count: 2000
+
+spring:
+  application:
+    name: service-b
+  threads:
+    virtual:
+      enabled: true
+
+servicea:
+  callback-url: http://localhost:8080/api/v1/orders/callback
+  outbound-service-key: "shared-secret-change-me"
+  inbound-service-key: "shared-secret-change-me"
+  min-latency-ms: 100
+  max-latency-ms: 400
+  failure-percentage: 10
+
+logging:
+  pattern:
+    console: "%d{HH:mm:ss.SSS} %-5level [%X{correlationId:-},%thread] %logger{36} - %msg%n"
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html      # browse the API at http://localhost:8081/swagger-ui.html
+    operations-sorter: method
+    tags-sorter: alpha
+    display-request-duration: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics

@@ -1,0 +1,9 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="service-b (8081)" type="Application" factoryName="Application">
+    <option name="MAIN_CLASS_NAME" value="com.example.serviceb.ServiceBApplication" />
+    <module name="service-b" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
